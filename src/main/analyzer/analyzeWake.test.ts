@@ -12,6 +12,18 @@ const command = (commandText: string, stdout: string): CommandEvidence => ({
   collectedAt: '2026-06-23T12:00:00.000Z'
 });
 
+const failedCommand = (commandText: string, stderr: string, failureKind?: CommandEvidence['failureKind']): CommandEvidence => ({
+  command: commandText,
+  status: 'failed',
+  stdout: '',
+  stderr,
+  exitCode: 1,
+  durationMs: 10,
+  collectedAt: '2026-06-23T12:00:00.000Z',
+  failureKind,
+  userMessage: failureKind === 'permission-required' ? 'Run WakeLens as administrator to collect this evidence.' : undefined
+});
+
 const baseEvidence = (overrides: Partial<RawScanEvidence['commands']>): RawScanEvidence => ({
   scanId: 'scan-1',
   startedAt: '2026-06-23T12:00:00.000Z',
@@ -75,5 +87,61 @@ describe('analyzeWakeEvidence', () => {
     expect(diagnosis.family).toBe('unknown');
     expect(diagnosis.confidence).toBe('unknown');
     expect(diagnosis.explanation).toContain('Windows did not expose');
+  });
+
+  it('turns administrator-only command failures into clear diagnostic issues', () => {
+    const diagnosis = analyzeWakeEvidence(
+      baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0'),
+        waketimers: failedCommand('powercfg /waketimers', 'administrator required', 'permission-required'),
+        requests: failedCommand('powercfg /requests', 'administrator required', 'permission-required')
+      })
+    );
+
+    expect(diagnosis.diagnosticIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'warning',
+          title: 'Administrator permission needed'
+        })
+      ])
+    );
+    expect(diagnosis.recommendations[0].command).toBe('run-as-admin');
+  });
+
+  it('uses wake-armed devices as low-confidence follow-up evidence', () => {
+    const diagnosis = analyzeWakeEvidence(
+      baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0'),
+        wakeArmed: command('powercfg /devicequery wake_armed', 'Intel(R) Ethernet Controller I226-V\nКлавиатура HID\nHID-совместимая мышь')
+      })
+    );
+
+    expect(diagnosis.family).toBe('device');
+    expect(diagnosis.confidence).toBe('low');
+    expect(diagnosis.evidenceSummary.join('\n')).toContain('Intel(R) Ethernet Controller I226-V');
+  });
+
+  it('uses Power-Troubleshooter event wake source as medium-confidence evidence', () => {
+    const diagnosis = analyzeWakeEvidence({
+      ...baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0')
+      }),
+      events: {
+        status: 'ok',
+        records: [
+          {
+            timeCreated: '2026-06-23T12:00:00.000Z',
+            providerName: 'Microsoft-Windows-Power-Troubleshooter',
+            id: 1,
+            message: 'Wake Source: Device -Intel(R) Ethernet Controller I226-V'
+          }
+        ]
+      }
+    });
+
+    expect(diagnosis.family).toBe('device');
+    expect(diagnosis.confidence).toBe('medium');
+    expect(diagnosis.headline).toContain('Intel(R) Ethernet Controller I226-V');
   });
 });

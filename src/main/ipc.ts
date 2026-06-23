@@ -6,12 +6,7 @@ import type { WakeScanRecord } from '../shared/types';
 import { createJsonReport, createMarkdownReport } from './reporting/reportExporter';
 import { runWakeScan } from './scan/runScan';
 import { HistoryStore } from './storage/historyStore';
-
-const allowedTools: Record<string, { command: string; args: string[] }> = {
-  'devmgmt.msc': { command: 'devmgmt.msc', args: [] },
-  'taskschd.msc': { command: 'taskschd.msc', args: [] },
-  'control.exe powercfg.cpl': { command: 'control.exe', args: ['powercfg.cpl'] }
-};
+import { getToolLaunch } from './toolLauncher';
 
 export const registerIpcHandlers = (userDataPath: string): void => {
   const history = new HistoryStore(join(userDataPath, 'history.json'));
@@ -40,12 +35,9 @@ export const registerIpcHandlers = (userDataPath: string): void => {
   });
 
   ipcMain.handle('wakelens:open-tool', async (_event, command: string) => {
-    const tool = allowedTools[command];
-    if (!tool) {
-      throw new Error('Unsupported tool command');
-    }
+    const tool = getToolLaunch(command, process.execPath);
 
-    const child = spawn(tool.command, tool.args, { detached: true, shell: true, windowsHide: false });
+    const child = spawn(tool.command, tool.args, { detached: true, shell: tool.shell, windowsHide: false });
     child.unref();
   });
 };

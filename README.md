@@ -2,28 +2,38 @@
 
 WakeLens helps Windows users understand why their PC woke up from sleep.
 
-Windows already keeps clues in `powercfg`, Event Viewer, wake timers, devices, and power requests. The problem is that those clues are scattered and technical. WakeLens collects them, explains the likely cause, and lets you export a clean support report.
+Windows already keeps clues in `powercfg`, wake timers, wake-capable devices, power requests, and Power-Troubleshooter events. The problem is that those clues are scattered, localized, and often require administrator permission. WakeLens collects the evidence, explains what was checked, and gives safe next steps.
+
+![WakeLens dashboard](docs/assets/wakelens-v020-dashboard.png)
 
 ## Why WakeLens Exists
 
 Unexpected wake-ups are a real Windows problem: a desktop can wake at night, a laptop can drain battery after sleep, and `Wake Source: Unknown` often gives users no practical answer. WakeLens is a readable layer over Windows diagnostics, not a replacement for them.
 
+## What's New In 0.2.0
+
+- Clear explanations for failed diagnostics, including administrator-only `powercfg` checks
+- Wake-capable device analysis from `powercfg /devicequery wake_armed`
+- Power-Troubleshooter event wake-source analysis
+- Localized parsing improvements for Russian and English Windows output
+- Redesigned dashboard with evidence cards, diagnostic issues, next steps, and technical details
+- Improved history with repeated-suspect summaries
+- Markdown reports now include diagnostic issues and power events
+- Branded app icon and refreshed screenshots
+
 ## Features
 
 - One-click wake diagnosis
 - Confidence level and plain-language explanation
-- Evidence from `powercfg` and Windows power events
-- Local scan history
+- Evidence availability cards for each Windows check
+- Local scan history with repeated suspects
+- Safe recommendations that do not silently change system settings
 - Markdown and JSON report export
 - No telemetry
-- Safe by default: no silent power setting changes
 
-## Screens
+## Install
 
-- Dashboard: latest diagnosis, confidence, evidence, and scan action
-- History: previous scans saved locally
-- Recommendations: safe next steps based on the result
-- Report: Markdown and JSON export for support threads
+Download the latest Windows installer from [Releases](https://github.com/jeckside/wakelens/releases).
 
 ## Run From Source
 
@@ -48,19 +58,18 @@ npm run dist
 
 The Windows installer is written to `release/`.
 
-## Privacy
+## Privacy And Safety
 
 WakeLens stores scan history locally in the app data folder. It does not send telemetry, upload reports, or require an account.
 
-## Safety
-
-WakeLens 0.1 is diagnostic-first. It can open Windows tools such as Device Manager or Task Scheduler, but it does not silently disable devices, scheduled tasks, wake timers, or power settings.
+WakeLens is diagnostic-first. It can open Windows tools such as Device Manager, Task Scheduler, power settings, or relaunch itself as administrator, but it does not silently disable devices, scheduled tasks, wake timers, or power settings.
 
 ## Documentation
 
 - [User Guide](docs/USER_GUIDE.md)
 - [Technical Notes](docs/TECHNICAL.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Release Notes](docs/RELEASE_NOTES.md)
 - [Marketing](docs/MARKETING.md)
 
 ## License

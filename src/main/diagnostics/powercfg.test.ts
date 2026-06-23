@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseLastWake, parsePowerRequests, parseWakeTimers } from './powercfg';
+import { parseLastWake, parsePowerRequests, parseWakeArmedDevices, parseWakeTimers } from './powercfg';
 
 const fixture = (name: string): string =>
   readFileSync(resolve(process.cwd(), 'tests/fixtures', name), 'utf8');
@@ -22,6 +22,10 @@ describe('parseLastWake', () => {
 
   it('keeps unknown wake source as source count zero', () => {
     expect(parseLastWake(fixture('lastwake-unknown.txt'))).toEqual({ sourceCount: 0 });
+  });
+
+  it('handles localized Russian lastwake output without inventing a source', () => {
+    expect(parseLastWake(fixture('lastwake-russian-unknown.txt'))).toEqual({ sourceCount: 0 });
   });
 });
 
@@ -49,6 +53,19 @@ describe('parsePowerRequests', () => {
         requester: '\\Device\\HarddiskVolume3\\Program Files\\VideoTool\\video.exe',
         reason: 'VideoTool is keeping the display active.'
       }
+    ]);
+  });
+});
+
+describe('parseWakeArmedDevices', () => {
+  it('extracts wake-capable devices from localized Windows output', () => {
+    expect(parseWakeArmedDevices(fixture('wakearmed-russian.txt'))).toEqual([
+      { name: 'Intel(R) Ethernet Controller I226-V', category: 'network' },
+      { name: 'Клавиатура HID', category: 'keyboard' },
+      { name: 'Клавиатура HID (001)', category: 'keyboard' },
+      { name: 'HID-совместимая мышь (003)', category: 'mouse' },
+      { name: 'Клавиатура HID (004)', category: 'keyboard' },
+      { name: 'HID-совместимая мышь (004)', category: 'mouse' }
     ]);
   });
 });

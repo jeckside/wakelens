@@ -24,6 +24,13 @@ const sample: WakeScanRecord = {
     headline: 'Windows did not reveal a reliable wake source',
     explanation: 'Windows did not expose enough evidence.',
     evidenceSummary: ['Wake Source Count - 0'],
+    diagnosticIssues: [
+      {
+        severity: 'warning',
+        title: 'Administrator permission needed',
+        body: 'Windows blocked part of the scan because the app is not running with elevated permission.'
+      }
+    ],
     recommendations: [{ title: 'Scan again', body: 'Run WakeLens after the next wake.' }]
   }
 };
@@ -35,6 +42,8 @@ describe('reportExporter', () => {
     expect(report.filename).toBe('wakelens-scan-1.md');
     expect(report.content).toContain('# WakeLens Report');
     expect(report.content).toContain('Windows did not reveal a reliable wake source');
+    expect(report.content).toContain('## Diagnostic Issues');
+    expect(report.content).toContain('Administrator permission needed');
   });
 
   it('creates a JSON report', () => {

@@ -1,4 +1,4 @@
-import type { ParsedLastWake, ParsedPowerRequest, ParsedWakeTimer } from '../../shared/types';
+import type { DeviceCategory, ParsedLastWake, ParsedPowerRequest, ParsedWakeArmedDevice, ParsedWakeTimer } from '../../shared/types';
 
 const valueAfter = (line: string, label: string): string | undefined => {
   const prefix = `${label}:`;
@@ -6,18 +6,26 @@ const valueAfter = (line: string, label: string): string | undefined => {
   return trimmed.startsWith(prefix) ? trimmed.slice(prefix.length).trim() : undefined;
 };
 
+const valueAfterAny = (line: string, labels: string[]): string | undefined => {
+  for (const label of labels) {
+    const value = valueAfter(line, label);
+    if (value) return value;
+  }
+  return undefined;
+};
+
 export const parseLastWake = (stdout: string): ParsedLastWake => {
   const lines = stdout.split(/\r?\n/);
-  const sourceCountLine = lines.find((line) => line.includes('Wake Source Count'));
-  const sourceCountMatch = sourceCountLine?.match(/Wake Source Count\s*-\s*(\d+)/i);
+  const sourceCountLine = lines.find((line) => /Wake Source Count|Источник пробуждения|Отсчет журнала пробуждения/i.test(line));
+  const sourceCountMatch = sourceCountLine?.match(/(?:Wake Source Count|Источник пробуждения|Отсчет журнала пробуждения)\s*-\s*(\d+)/i);
   const parsed: ParsedLastWake = { sourceCount: sourceCountMatch ? Number(sourceCountMatch[1]) : 0 };
 
   for (const line of lines) {
-    parsed.type ??= valueAfter(line, 'Type');
-    parsed.instancePath ??= valueAfter(line, 'Instance Path');
-    parsed.friendlyName ??= valueAfter(line, 'Friendly Name');
-    parsed.description ??= valueAfter(line, 'Description');
-    parsed.manufacturer ??= valueAfter(line, 'Manufacturer');
+    parsed.type ??= valueAfterAny(line, ['Type', 'Тип']);
+    parsed.instancePath ??= valueAfterAny(line, ['Instance Path', 'Путь к экземпляру', 'Путь экземпляра']);
+    parsed.friendlyName ??= valueAfterAny(line, ['Friendly Name', 'Понятное имя', 'Дружественное имя']);
+    parsed.description ??= valueAfterAny(line, ['Description', 'Описание']);
+    parsed.manufacturer ??= valueAfterAny(line, ['Manufacturer', 'Изготовитель', 'Производитель']);
   }
 
   return parsed;
@@ -72,3 +80,33 @@ export const parsePowerRequests = (stdout: string): ParsedPowerRequest[] => {
 
   return requests;
 };
+
+const categorizeDevice = (name: string): DeviceCategory => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes('ethernet') || normalized.includes('wi-fi') || normalized.includes('wireless') || normalized.includes('network')) {
+    return 'network';
+  }
+  if (normalized.includes('клавиат') || normalized.includes('keyboard')) {
+    return 'keyboard';
+  }
+  if (normalized.includes('мыш') || normalized.includes('mouse')) {
+    return 'mouse';
+  }
+  if (normalized.includes('bluetooth')) {
+    return 'bluetooth';
+  }
+  if (normalized.includes('usb') || normalized.includes('hid')) {
+    return 'usb';
+  }
+  return 'other';
+};
+
+export const parseWakeArmedDevices = (stdout: string): ParsedWakeArmedDevice[] =>
+  stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^none\.?$/i.test(line) && !/^нет\.?$/i.test(line))
+    .map((name) => ({
+      name,
+      category: categorizeDevice(name)
+    }));

@@ -3,6 +3,7 @@ import type { ExportedReport, WakeScanRecord } from '../../shared/types';
 const safeId = (id: string): string => id.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
 
 export const createMarkdownReport = (record: WakeScanRecord): ExportedReport => {
+  const diagnosticIssues = record.diagnosis.diagnosticIssues ?? [];
   const lines = [
     '# WakeLens Report',
     '',
@@ -22,9 +23,23 @@ export const createMarkdownReport = (record: WakeScanRecord): ExportedReport => 
     '',
     ...record.diagnosis.evidenceSummary.map((item) => `- ${item}`),
     '',
+    ...(diagnosticIssues.length > 0
+      ? [
+          '## Diagnostic Issues',
+          '',
+          ...diagnosticIssues.map((item) => `- ${item.severity.toUpperCase()}: ${item.title} - ${item.body}`),
+          ''
+        ]
+      : []),
     '## Recommendations',
     '',
     ...record.diagnosis.recommendations.map((item) => `- ${item.title}: ${item.body}`),
+    '',
+    '## Power Events',
+    '',
+    ...(record.evidence.events.records.length > 0
+      ? record.evidence.events.records.map((event) => `- ${event.timeCreated}: ${event.message}`)
+      : [`Status: ${record.evidence.events.status}${record.evidence.events.error ? ` - ${record.evidence.events.error}` : ''}`]),
     '',
     '## Raw Commands',
     '',

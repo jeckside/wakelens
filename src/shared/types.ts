@@ -1,6 +1,9 @@
 export type Confidence = 'high' | 'medium' | 'low' | 'unknown';
 export type CauseFamily = 'device' | 'timer' | 'power-request' | 'immediate-wake' | 'unknown';
 export type EvidenceStatus = 'ok' | 'empty' | 'failed';
+export type CommandFailureKind = 'permission-required' | 'timeout' | 'not-found' | 'exit-code' | 'unknown';
+export type DeviceCategory = 'network' | 'keyboard' | 'mouse' | 'bluetooth' | 'usb' | 'other';
+export type DiagnosticSeverity = 'info' | 'warning' | 'error';
 
 export interface CommandEvidence {
   command: string;
@@ -10,6 +13,8 @@ export interface CommandEvidence {
   exitCode: number | null;
   durationMs: number;
   collectedAt: string;
+  failureKind?: CommandFailureKind;
+  userMessage?: string;
 }
 
 export interface PowerEvent {
@@ -42,6 +47,11 @@ export interface ParsedPowerRequest {
   reason?: string;
 }
 
+export interface ParsedWakeArmedDevice {
+  name: string;
+  category: DeviceCategory;
+}
+
 export interface RawScanEvidence {
   scanId: string;
   startedAt: string;
@@ -68,12 +78,22 @@ export interface Recommendation {
   command?: string;
 }
 
+export interface DiagnosticIssue {
+  severity: DiagnosticSeverity;
+  title: string;
+  body: string;
+  actionLabel?: string;
+  command?: string;
+}
+
 export interface Diagnosis {
   family: CauseFamily;
   confidence: Confidence;
   headline: string;
   explanation: string;
   evidenceSummary: string[];
+  diagnosticIssues?: DiagnosticIssue[];
+  technicalDetails?: string[];
   recommendations: Recommendation[];
 }
 
