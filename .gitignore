@@ -8,5 +8,10 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+release/
+.vite/
+.idea/
+.vscode/
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
