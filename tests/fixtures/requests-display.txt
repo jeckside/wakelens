@@ -1,0 +1,9 @@
+DISPLAY:
+[PROCESS] \Device\HarddiskVolume3\Program Files\VideoTool\video.exe
+VideoTool is keeping the display active.
+
+SYSTEM:
+None.
+
+AWAYMODE:
+None.
