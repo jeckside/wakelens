@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { join } from 'node:path';
 import { registerIpcHandlers } from './ipc';
+import { getPreloadPath } from './preloadPath';
 
 const createWindow = (): void => {
   const mainWindow = new BrowserWindow({
@@ -11,7 +12,7 @@ const createWindow = (): void => {
     title: 'WakeLens',
     backgroundColor: '#f6f7f9',
     webPreferences: {
-      preload: join(__dirname, '../preload/preload.js'),
+      preload: getPreloadPath(__dirname),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
