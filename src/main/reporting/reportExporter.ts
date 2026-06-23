@@ -1,55 +1,58 @@
 import type { ExportedReport, WakeScanRecord } from '../../shared/types';
+import { defaultLocale, t, type LocaleCode } from '../../shared/i18n';
+import { analyzeWakeEvidence } from '../analyzer/analyzeWake';
 
 const safeId = (id: string): string => id.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
 
-export const createMarkdownReport = (record: WakeScanRecord): ExportedReport => {
-  const diagnosticIssues = record.diagnosis.diagnosticIssues ?? [];
+export const createMarkdownReport = (record: WakeScanRecord, locale: LocaleCode = defaultLocale): ExportedReport => {
+  const diagnosis = analyzeWakeEvidence(record.evidence, locale);
+  const diagnosticIssues = diagnosis.diagnosticIssues ?? [];
   const lines = [
-    '# WakeLens Report',
+    `# ${t(locale, 'report.title')}`,
     '',
-    `Scan ID: ${record.id}`,
-    `Created: ${record.createdAt}`,
-    `OS: ${record.evidence.osVersion}`,
+    `${t(locale, 'report.scanId')}: ${record.id}`,
+    `${t(locale, 'report.created')}: ${record.createdAt}`,
+    `${t(locale, 'report.os')}: ${record.evidence.osVersion}`,
     '',
-    '## Diagnosis',
+    `## ${t(locale, 'report.diagnosis')}`,
     '',
-    `Family: ${record.diagnosis.family}`,
-    `Confidence: ${record.diagnosis.confidence}`,
-    `Headline: ${record.diagnosis.headline}`,
+    `${t(locale, 'report.family')}: ${diagnosis.family}`,
+    `${t(locale, 'report.confidence')}: ${diagnosis.confidence}`,
+    `${t(locale, 'report.headline')}: ${diagnosis.headline}`,
     '',
-    record.diagnosis.explanation,
+    diagnosis.explanation,
     '',
-    '## Evidence Summary',
+    `## ${t(locale, 'report.evidenceSummary')}`,
     '',
-    ...record.diagnosis.evidenceSummary.map((item) => `- ${item}`),
+    ...diagnosis.evidenceSummary.map((item) => `- ${item}`),
     '',
     ...(diagnosticIssues.length > 0
       ? [
-          '## Diagnostic Issues',
+          `## ${t(locale, 'report.diagnosticIssues')}`,
           '',
           ...diagnosticIssues.map((item) => `- ${item.severity.toUpperCase()}: ${item.title} - ${item.body}`),
           ''
         ]
       : []),
-    '## Recommendations',
+    `## ${t(locale, 'report.recommendations')}`,
     '',
-    ...record.diagnosis.recommendations.map((item) => `- ${item.title}: ${item.body}`),
+    ...diagnosis.recommendations.map((item) => `- ${item.title}: ${item.body}`),
     '',
-    '## Power Events',
+    `## ${t(locale, 'report.powerEvents')}`,
     '',
     ...(record.evidence.events.records.length > 0
       ? record.evidence.events.records.map((event) => `- ${event.timeCreated}: ${event.message}`)
-      : [`Status: ${record.evidence.events.status}${record.evidence.events.error ? ` - ${record.evidence.events.error}` : ''}`]),
+      : [`${t(locale, 'report.status')}: ${record.evidence.events.status}${record.evidence.events.error ? ` - ${record.evidence.events.error}` : ''}`]),
     '',
-    '## Raw Commands',
+    `## ${t(locale, 'report.rawCommands')}`,
     '',
     ...Object.values(record.evidence.commands).flatMap((command) => [
       `### ${command.command}`,
       '',
-      `Status: ${command.status}`,
+      `${t(locale, 'report.status')}: ${command.status}`,
       '',
       '```text',
-      command.stdout || command.stderr || 'No output.',
+      command.stdout || command.stderr || t(locale, 'report.noOutput'),
       '```',
       ''
     ])

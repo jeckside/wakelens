@@ -1,4 +1,5 @@
 import type { CommandEvidence, EvidenceStatus, RawScanEvidence, WakeScanRecord } from '../shared/types';
+import { defaultLocale, t, type LocaleCode } from '../shared/i18n';
 
 export type EvidenceCardState = 'good' | 'neutral' | 'warning' | 'error';
 
@@ -16,17 +17,17 @@ export interface RepeatedSuspect {
   count: number;
 }
 
-const commandTitles: Record<keyof RawScanEvidence['commands'], string> = {
-  lastwake: 'Last wake source',
-  waketimers: 'Wake timers',
-  requests: 'Power requests',
-  wakeArmed: 'Wake-capable devices'
+const commandTitleKeys: Record<keyof RawScanEvidence['commands'], Parameters<typeof t>[1]> = {
+  lastwake: 'ui.check.lastwake',
+  waketimers: 'ui.check.waketimers',
+  requests: 'ui.check.requests',
+  wakeArmed: 'ui.check.wakeArmed'
 };
 
-const statusLabel = (status: EvidenceStatus): string => {
-  if (status === 'ok') return 'Collected';
-  if (status === 'empty') return 'No data';
-  return 'Could not check';
+const statusLabel = (status: EvidenceStatus, locale: LocaleCode): string => {
+  if (status === 'ok') return t(locale, 'ui.check.status.collected');
+  if (status === 'empty') return t(locale, 'ui.check.status.noData');
+  return t(locale, 'ui.check.status.failed');
 };
 
 const stateForCommand = (command: CommandEvidence): EvidenceCardState => {
@@ -36,40 +37,40 @@ const stateForCommand = (command: CommandEvidence): EvidenceCardState => {
   return 'error';
 };
 
-const detailForCommand = (command: CommandEvidence): string => {
+const detailForCommand = (command: CommandEvidence, locale: LocaleCode): string => {
   if (command.failureKind === 'permission-required') {
-    return command.userMessage || 'Run WakeLens as administrator to collect this evidence.';
+    return t(locale, 'ui.check.detail.needsAdmin');
   }
   if (command.status === 'ok') {
-    return 'Windows returned diagnostic output for this check.';
+    return t(locale, 'ui.check.detail.ok');
   }
   if (command.status === 'empty') {
-    return 'Windows returned no entries for this check.';
+    return t(locale, 'ui.check.detail.empty');
   }
-  return command.userMessage || command.stderr || 'Windows returned an error for this check.';
+  return command.userMessage || command.stderr || t(locale, 'ui.check.detail.error');
 };
 
-const cardForCommand = (id: keyof RawScanEvidence['commands'], command: CommandEvidence): EvidenceCard => ({
+const cardForCommand = (id: keyof RawScanEvidence['commands'], command: CommandEvidence, locale: LocaleCode): EvidenceCard => ({
   id,
-  title: commandTitles[id],
-  status: command.failureKind === 'permission-required' ? 'Needs administrator' : statusLabel(command.status),
-  detail: detailForCommand(command),
+  title: t(locale, commandTitleKeys[id]),
+  status: command.failureKind === 'permission-required' ? t(locale, 'ui.check.status.needsAdmin') : statusLabel(command.status, locale),
+  detail: detailForCommand(command, locale),
   state: stateForCommand(command)
 });
 
-export const buildEvidenceCards = (evidence: RawScanEvidence): EvidenceCard[] => [
-  cardForCommand('lastwake', evidence.commands.lastwake),
-  cardForCommand('waketimers', evidence.commands.waketimers),
-  cardForCommand('requests', evidence.commands.requests),
-  cardForCommand('wakeArmed', evidence.commands.wakeArmed),
+export const buildEvidenceCards = (evidence: RawScanEvidence, locale: LocaleCode = defaultLocale): EvidenceCard[] => [
+  cardForCommand('lastwake', evidence.commands.lastwake, locale),
+  cardForCommand('waketimers', evidence.commands.waketimers, locale),
+  cardForCommand('requests', evidence.commands.requests, locale),
+  cardForCommand('wakeArmed', evidence.commands.wakeArmed, locale),
   {
     id: 'events',
-    title: 'Power event log',
-    status: statusLabel(evidence.events.status),
+    title: t(locale, 'ui.check.events'),
+    status: statusLabel(evidence.events.status, locale),
     detail:
       evidence.events.status === 'ok'
-        ? `${evidence.events.records.length} recent power event records found.`
-        : evidence.events.error || 'No recent Power-Troubleshooter events were available.',
+        ? t(locale, 'ui.check.detail.eventsOk', { count: evidence.events.records.length })
+        : evidence.events.error || t(locale, 'ui.check.detail.eventsEmpty'),
     state: evidence.events.status === 'failed' ? 'warning' : evidence.events.status === 'ok' ? 'good' : 'neutral'
   }
 ];

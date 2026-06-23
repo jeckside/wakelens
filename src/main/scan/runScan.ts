@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { release, type } from 'node:os';
 import type { RawScanEvidence, WakeScanRecord } from '../../shared/types';
+import { defaultLocale, type LocaleCode } from '../../shared/i18n';
 import { analyzeWakeEvidence } from '../analyzer/analyzeWake';
 import { runCommand } from '../diagnostics/commandRunner';
 import { collectRecentPowerEvents } from '../diagnostics/events';
 
-export const runWakeScan = async (): Promise<WakeScanRecord> => {
+export const runWakeScan = async (locale: LocaleCode = defaultLocale): Promise<WakeScanRecord> => {
   const scanId = randomUUID();
   const startedAt = new Date().toISOString();
   const [lastwake, waketimers, requests, wakeArmed, events] = await Promise.all([
@@ -35,6 +36,6 @@ export const runWakeScan = async (): Promise<WakeScanRecord> => {
     id: scanId,
     createdAt: completedAt,
     evidence,
-    diagnosis: analyzeWakeEvidence(evidence)
+    diagnosis: analyzeWakeEvidence(evidence, locale)
   };
 };

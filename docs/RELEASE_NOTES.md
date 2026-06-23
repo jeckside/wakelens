@@ -1,5 +1,16 @@
 # WakeLens Release Notes
 
+## v0.3.0
+
+WakeLens 0.3.0 adds full product localization.
+
+- Localized app UI for English, Simplified Chinese, Hindi, Spanish, Arabic, and Russian.
+- Added a language selector with persistent local preference.
+- Added RTL layout support for Arabic.
+- Localized diagnosis text, diagnostic issues, recommendations, evidence cards, and Markdown reports.
+- Added localized documentation and marketing materials.
+- Added i18n tests for locale coverage, fallback, interpolation, and RTL behavior.
+
 ## v0.2.0
 
 WakeLens 0.2.0 focuses on trust and usability.

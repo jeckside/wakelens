@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { App } from './App';
 
 describe('App', () => {
-  it('renders WakeLens dashboard copy', () => {
+  it('renders localized WakeLens dashboard copy', () => {
     const html = renderToString(<App />);
 
     expect(html).toContain('WakeLens');
-    expect(html).toContain('Find out why this PC woke up');
-    expect(html).toContain('Scan now');
+    expect(html).toContain('Русский');
+    expect(html).toMatch(/Find out why this PC woke up|Узнайте, почему этот ПК проснулся/);
+    expect(html).toMatch(/Scan now|Сканировать/);
   });
 });

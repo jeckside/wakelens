@@ -12,7 +12,16 @@ const sample: WakeScanRecord = {
     osVersion: 'Windows',
     commands: {
       lastwake: { command: 'powercfg /lastwake', status: 'ok', stdout: 'Wake Source Count - 0', stderr: '', exitCode: 0, durationMs: 1, collectedAt: '2026-06-23T12:00:00.000Z' },
-      waketimers: { command: 'powercfg /waketimers', status: 'empty', stdout: '', stderr: '', exitCode: 0, durationMs: 1, collectedAt: '2026-06-23T12:00:00.000Z' },
+      waketimers: {
+        command: 'powercfg /waketimers',
+        status: 'failed',
+        stdout: '',
+        stderr: 'administrator required',
+        exitCode: 1,
+        durationMs: 1,
+        collectedAt: '2026-06-23T12:00:00.000Z',
+        failureKind: 'permission-required'
+      },
       requests: { command: 'powercfg /requests', status: 'empty', stdout: '', stderr: '', exitCode: 0, durationMs: 1, collectedAt: '2026-06-23T12:00:00.000Z' },
       wakeArmed: { command: 'powercfg /devicequery wake_armed', status: 'empty', stdout: '', stderr: '', exitCode: 0, durationMs: 1, collectedAt: '2026-06-23T12:00:00.000Z' }
     },
@@ -44,6 +53,14 @@ describe('reportExporter', () => {
     expect(report.content).toContain('Windows did not reveal a reliable wake source');
     expect(report.content).toContain('## Diagnostic Issues');
     expect(report.content).toContain('Administrator permission needed');
+  });
+
+  it('creates a localized markdown support report', () => {
+    const report = createMarkdownReport(sample, 'ru');
+
+    expect(report.content).toContain('# Отчёт WakeLens');
+    expect(report.content).toContain('## Диагноз');
+    expect(report.content).toContain('Проблемы диагностики');
   });
 
   it('creates a JSON report', () => {

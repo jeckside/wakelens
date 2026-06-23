@@ -70,6 +70,25 @@ describe('buildEvidenceCards', () => {
       })
     );
   });
+
+  it('localizes evidence cards', () => {
+    const cards = buildEvidenceCards({
+      scanId: 'scan',
+      startedAt: '2026-06-23T12:00:00.000Z',
+      completedAt: '2026-06-23T12:00:01.000Z',
+      osVersion: 'Windows',
+      commands: {
+        lastwake: command({ command: 'powercfg /lastwake' }),
+        waketimers: command({ command: 'powercfg /waketimers', status: 'empty', stdout: '' }),
+        requests: command({ command: 'powercfg /requests', status: 'empty', stdout: '' }),
+        wakeArmed: command({ command: 'powercfg /devicequery wake_armed', status: 'empty', stdout: '' })
+      },
+      events: { status: 'empty', records: [] }
+    }, 'ru');
+
+    expect(cards[0].title).toBe('Последний источник пробуждения');
+    expect(cards[1].status).toBe('Нет данных');
+  });
 });
 
 describe('findRepeatedSuspects', () => {

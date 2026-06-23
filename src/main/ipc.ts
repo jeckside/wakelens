@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import type { WakeScanRecord } from '../shared/types';
+import { normalizeLocale, type LocaleCode } from '../shared/i18n';
 import { createJsonReport, createMarkdownReport } from './reporting/reportExporter';
 import { runWakeScan } from './scan/runScan';
 import { HistoryStore } from './storage/historyStore';
@@ -11,16 +12,16 @@ import { getToolLaunch } from './toolLauncher';
 export const registerIpcHandlers = (userDataPath: string): void => {
   const history = new HistoryStore(join(userDataPath, 'history.json'));
 
-  ipcMain.handle('wakelens:scan', async () => {
-    const record = await runWakeScan();
+  ipcMain.handle('wakelens:scan', async (_event, locale?: LocaleCode) => {
+    const record = await runWakeScan(normalizeLocale(locale));
     await history.add(record);
     return record;
   });
 
   ipcMain.handle('wakelens:history', async () => history.list());
 
-  ipcMain.handle('wakelens:export', async (_event, record: WakeScanRecord, format: 'markdown' | 'json') => {
-    const report = format === 'markdown' ? createMarkdownReport(record) : createJsonReport(record);
+  ipcMain.handle('wakelens:export', async (_event, record: WakeScanRecord, format: 'markdown' | 'json', locale?: LocaleCode) => {
+    const report = format === 'markdown' ? createMarkdownReport(record, normalizeLocale(locale)) : createJsonReport(record);
     const result = await dialog.showSaveDialog({
       defaultPath: report.filename,
       filters: [{ name: format === 'markdown' ? 'Markdown' : 'JSON', extensions: [format === 'markdown' ? 'md' : 'json'] }]

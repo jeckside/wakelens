@@ -144,4 +144,41 @@ describe('analyzeWakeEvidence', () => {
     expect(diagnosis.confidence).toBe('medium');
     expect(diagnosis.headline).toContain('Intel(R) Ethernet Controller I226-V');
   });
+
+  it('localizes administrator guidance to Russian', () => {
+    const diagnosis = analyzeWakeEvidence(
+      baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0'),
+        waketimers: failedCommand('powercfg /waketimers', 'administrator required', 'permission-required')
+      }),
+      'ru'
+    );
+
+    expect(diagnosis.diagnosticIssues?.[0].title).toBe('Нужны права администратора');
+    expect(diagnosis.recommendations[0].actionLabel).toBe('Перезапустить от администратора');
+  });
+
+  it('localizes wake-armed device diagnosis to Spanish', () => {
+    const diagnosis = analyzeWakeEvidence(
+      baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0'),
+        wakeArmed: command('powercfg /devicequery wake_armed', 'Intel(R) Ethernet Controller I226-V')
+      }),
+      'es'
+    );
+
+    expect(diagnosis.headline).toBe('Revisa los dispositivos que pueden activar el PC');
+    expect(diagnosis.evidenceSummary[1]).toContain('1');
+  });
+
+  it('localizes unknown diagnosis to Arabic', () => {
+    const diagnosis = analyzeWakeEvidence(
+      baseEvidence({
+        lastwake: command('powercfg /lastwake', 'Wake Source Count - 0')
+      }),
+      'ar'
+    );
+
+    expect(diagnosis.headline).toBe('لم يكشف Windows عن مصدر استيقاظ موثوق');
+  });
 });
