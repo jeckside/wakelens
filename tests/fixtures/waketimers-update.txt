@@ -1,0 +1,2 @@
+Timer set by [SERVICE] \Device\HarddiskVolume3\Windows\System32\svchost.exe (SystemEventsBroker) expires at 03:00:00 on 2026-06-24.
+  Reason: Windows will execute 'NT TASK\Microsoft\Windows\UpdateOrchestrator\Schedule Wake To Work'
