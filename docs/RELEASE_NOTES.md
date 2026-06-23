@@ -1,5 +1,10 @@
 # WakeLens Release Notes
 
+## v0.3.1
+
+- Fixed the "Restart as administrator" action when WakeLens is launched from a development Electron entrypoint.
+- Improved the Russian administrator action label to "Перезапустить от имени администратора".
+
 ## v0.3.0
 
 WakeLens 0.3.0 adds full product localization.

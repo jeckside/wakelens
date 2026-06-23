@@ -155,7 +155,7 @@ describe('analyzeWakeEvidence', () => {
     );
 
     expect(diagnosis.diagnosticIssues?.[0].title).toBe('Нужны права администратора');
-    expect(diagnosis.recommendations[0].actionLabel).toBe('Перезапустить от администратора');
+    expect(diagnosis.recommendations[0].actionLabel).toBe('Перезапустить от имени администратора');
   });
 
   it('localizes wake-armed device diagnosis to Spanish', () => {

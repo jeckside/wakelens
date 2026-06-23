@@ -24,6 +24,20 @@ describe('getToolLaunch', () => {
     });
   });
 
+  it('preserves app launch arguments when relaunching elevated', () => {
+    expect(getToolLaunch('run-as-admin', 'C:/Electron/electron.exe', ['C:/WakeLens/out/main/main.js', '--user-data-dir=C:/Temp/WakeLens Profile'])).toEqual({
+      command: 'powershell.exe',
+      args: [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        "Start-Process -FilePath 'C:/Electron/electron.exe' -ArgumentList @('C:/WakeLens/out/main/main.js','--user-data-dir=C:/Temp/WakeLens Profile') -Verb RunAs"
+      ],
+      shell: false
+    });
+  });
+
   it('rejects unsupported tool commands', () => {
     expect(() => getToolLaunch('cmd.exe /c format C:', 'C:/WakeLens/WakeLens.exe')).toThrow('Unsupported tool command');
   });

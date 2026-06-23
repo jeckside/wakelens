@@ -36,7 +36,8 @@ export const registerIpcHandlers = (userDataPath: string): void => {
   });
 
   ipcMain.handle('wakelens:open-tool', async (_event, command: string) => {
-    const tool = getToolLaunch(command, process.execPath);
+    const selfArgs = process.defaultApp ? process.argv.slice(1) : [];
+    const tool = getToolLaunch(command, process.execPath, selfArgs);
 
     const child = spawn(tool.command, tool.args, { detached: true, shell: tool.shell, windowsHide: false });
     child.unref();
