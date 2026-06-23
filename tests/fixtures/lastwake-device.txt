@@ -1,0 +1,9 @@
+Wake History Count - 1
+Wake History [0]
+  Wake Source Count - 1
+  Wake Source [0]
+    Type: Device
+    Instance Path: USB\VID_046D&PID_C539\6&1A2B3C4D&0&3
+    Friendly Name: USB Composite Device
+    Description: USB Composite Device
+    Manufacturer: (Standard USB Host Controller)
